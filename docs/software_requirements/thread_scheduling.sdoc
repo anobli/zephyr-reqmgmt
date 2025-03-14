@@ -11,154 +11,350 @@ SPDX-License-Identifier: Apache-2.0
 <<<
 
 [[SECTION]]
-TITLE: Thread Scheduling
+TITLE: Thread Scheduling Algorithm
 
 [REQUIREMENT]
-UID: ZEP-SRS-2-1
-STATUS: Draft
-TYPE: Functional
-COMPONENT: Multi Core
-TITLE: Support operation on more than one CPU
-STATEMENT: >>>
-The Zephyr RTOS shall support operation on more than one physical CPU sharing the same kernel state.
-<<<
-
-[REQUIREMENT]
-UID: ZEP-SRS-2-2
-STATUS: Draft
-TYPE: Functional
-COMPONENT: Multi Core
-TITLE: Running threads on specific CPUs
-STATEMENT: >>>
-The Zephyr RTOS shall provide an interface for running threads on specific sets of CPUs ( default is 1 CPU).
-<<<
-USER_STORY: >>>
-As a Zephyr RTOS user I want Zephyr OS to be able to specify the CPU core or the set of CPU cores on which a thread shall be executed.
-<<<
-
-[REQUIREMENT]
-UID: ZEP-SRS-2-3
-STATUS: Draft
-TYPE: Functional
-COMPONENT: Multi Core
-TITLE: Exclusion between physical CPUs
-STATEMENT: >>>
-The Zephyr RTOS shall provide an interface for mutual exclusion between multiple physical CPUs.
-<<<
-USER_STORY: >>>
-As a Zephyr RTOS user I want Zephyr OS to provide synchronization mechanisms between the CPU cores and the access to common resources.
-<<<
-
-[[/SECTION]]
-
-[[SECTION]]
-TITLE: Thread Scheduling
-
-[REQUIREMENT]
-UID: ZEP-SRS-2-4
+UID: ZEP-SRS-2-001
 STATUS: Draft
 TYPE: Functional
 COMPONENT: Thread Scheduling
-TITLE: Scheduling a thread based on an event
+TITLE: Priority Ordering Convention
 STATEMENT: >>>
-The Zephyr RTOS shall provide an interface to schedule a thread based on an event.
-<<<
-USER_STORY: >>>
-As a Zephyr RTOS user, I want to be able to execute work which reacts on events and interrupts the current executed work.
+The Zephyr RTOS shall treat a thread with a numerically lower priority value as having higher scheduling priority than a thread with a numerically higher priority value.
 <<<
 RELATIONS:
 - TYPE: Parent
-  VALUE: ZEP-SYRS-15
+  VALUE: ZEP-SYRS-17
 
 [REQUIREMENT]
-UID: ZEP-SRS-2-5
+UID: ZEP-SRS-2-002
 STATUS: Draft
 TYPE: Functional
 COMPONENT: Thread Scheduling
-TITLE: Deadline Scheduling Priorities
+TITLE: Priority-Based Selection
 STATEMENT: >>>
-The Zephyr RTOS shall organize running threads by earliest deadline first priority.
+The Zephyr RTOS shall select the highest-priority ready thread as the current thread.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+- TYPE: Parent
+  VALUE: ZEP-SYRS-17
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-003
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: CPU affinity selection
+STATEMENT: >>>
+Where Symmetric multiprocessing is enabled, the Zephyr RTOS shall use CPU affinity to select a thread that is allowed on current CPU.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-11
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-004
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Earliest Deadline First Scheduling
+STATEMENT: >>>
+Where earliest-deadline-first (EDF) scheduling is enabled, when two or more ready threads have equal static priority, the Zephyr RTOS shall consider the thread with the earliest deadline to have the higher priority.
 <<<
 USER_STORY: >>>
 As a Zephyr RTOS user, I want to be able to schedule threads by earliest deadline first.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+- TYPE: Parent
+  VALUE: ZEP-SYRS-17
 
 [REQUIREMENT]
-UID: ZEP-SRS-2-6
+UID: ZEP-SRS-2-023
 STATUS: Draft
 TYPE: Functional
 COMPONENT: Thread Scheduling
-TITLE: Work Queue utility capable of running preemptible work items
+TITLE: Thread Deadline Assignment
 STATEMENT: >>>
-The Zephyr RTOS shall provide a thread-pooled work queue utility capable of running preemptible work items with specific scheduler priorities.
+Where earliest-deadline-first (EDF) scheduling is enabled, the Zephyr RTOS shall provide a mechanism to assign a deadline to a thread.
 <<<
-USER_STORY: >>>
-As a Zephyr RTOS user, I want to be able to add work items in a thread work queue with different priorities and these shall be scheduled according their priorities.
-<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SRS-2-004
 
 [REQUIREMENT]
-UID: ZEP-SRS-2-7
+UID: ZEP-SRS-2-024
 STATUS: Draft
 TYPE: Functional
 COMPONENT: Thread Scheduling
-TITLE: Run user supplied functions in-order in a separate thread(s)
+TITLE: Default Thread Deadline
 STATEMENT: >>>
-The Zephyr RTOS shall provide an interface for running user-supplied functions.
+Where earliest-deadline-first (EDF) scheduling is enabled, if no deadline has been assigned to a thread, then the Zephyr RTOS shall consider that thread to have a higher effective priority than any thread with an assigned deadline.
 <<<
-USER_STORY: >>>
-As a Zephyr RTOS user, I want to be able to run functions in-order in a separated thread/threads.
-<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SRS-2-004
 
 [REQUIREMENT]
-UID: ZEP-SRS-2-8
+UID: ZEP-SRS-2-005
 STATUS: Draft
 TYPE: Functional
 COMPONENT: Thread Scheduling
-TITLE: Organize running threads into a fixed list
+TITLE: Equal-Priority Tie-Breaking
 STATEMENT: >>>
-The Zephyr RTOS shall organize running threads into a fixed list of numeric priorities.
+When two or more ready threads are eligible for selection and have equal effective priority, the Zephyr RTOS shall select the thread that has been in the ready state the longest.
 <<<
-USER_STORY: >>>
-As a Zephyr RTOS user, I want that the OS organize running threads in a fixed list of numeric priorities.
-<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SRS-2-002
+- TYPE: Parent
+  VALUE: ZEP-SRS-2-004
 
 [REQUIREMENT]
-UID: ZEP-SRS-2-9
+UID: ZEP-SRS-2-006
+STATUS: Draft
+TYPE: Non-Functional
+COMPONENT: Thread Scheduling
+TITLE: Ready Queue Scalability
+STATEMENT: >>>
+The Zephyr RTOS shall support ready queue implementations selectable at build time, offering trade-offs between memory footprint, scheduling determinism, and the number of supported thread priorities.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-007
 STATUS: Draft
 TYPE: Functional
 COMPONENT: Thread Scheduling
-TITLE: Preemption support
+TITLE: Mandatory Context Switch Triggers
 STATEMENT: >>>
-The Zephyr RTOS shall support preemption of a running thread by a higher priority thread.
+The Zephyr RTOS shall trigger rescheduling when an ISR returns to thread context or when a thread's static priority is modified.
 <<<
-USER_STORY: >>>
-As a Zephyr RTOS user, I want that the OS preempt running threads by a thread with higher priority.
-<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
 
 [REQUIREMENT]
-UID: ZEP-SRS-2-10
+UID: ZEP-SRS-2-008
 STATUS: Draft
 TYPE: Functional
 COMPONENT: Thread Scheduling
-TITLE: Un-preemptible thread priorities
+TITLE: Cooperative Thread Non-Preemption
 STATEMENT: >>>
-The Zephyr RTOS shall support thread priorities which cannot be preempted by other user threads.
+WHILE a cooperative thread (negative static priority) is the current thread, the Zephyr RTOS shall maintain it as the current thread until it performs an action that makes it unready.
 <<<
 USER_STORY: >>>
-As a Zephyr RTOS user, I want to be able to configure thread prioritizes which cannot be preempted by other user threads.
+As a Zephyr RTOS user, I want to be able to configure thread priorities which cannot be preempted by other user threads.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+- TYPE: Parent
+  VALUE: ZEP-SYRS-17
 
 [REQUIREMENT]
-UID: ZEP-SRS-2-11
+UID: ZEP-SRS-2-009
 STATUS: Draft
 TYPE: Functional
 COMPONENT: Thread Scheduling
-TITLE: Time sharing of CPU resources
+TITLE: Preemptive Thread Preemption
 STATEMENT: >>>
-The Zephyr RTOS shall support time sharing of CPU resources among threads of the same priority.
+The Zephyr RTOS shall preempt preemptive threads (non-negative static priority) when a higher-priority ready thread becomes ready at a reschedule point.
 <<<
 USER_STORY: >>>
-As a Zephyr RTOS user, I want to be able to configure my RTOS in the way, that the CPU resources are shared evenly among executed threads of the same priority.
+As a Zephyr RTOS user, I want the OS to preempt running threads when a thread with higher priority becomes ready.
 <<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+- TYPE: Parent
+  VALUE: ZEP-SYRS-17
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-010
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Meta-IRQ Thread Preemption
+STATEMENT: >>>
+Where Meta-IRQ scheduling is enabled, the Zephyr RTOS shall preempt any currently executing thread when a Meta-IRQ thread becomes ready, regardless of whether the executing thread is cooperative, preemptive, or has taken a scheduler lock.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+- TYPE: Parent
+  VALUE: ZEP-SYRS-17
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-011
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Meta-IRQ Preempted Thread Resumption
+STATEMENT: >>>
+Where Meta-IRQ scheduling is enabled, when a Meta-IRQ thread becomes unready or terminates, if the preempted thread is still ready, then the Zephyr RTOS shall resume that thread on the same CPU.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-012
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Meta-IRQ Hardware Interrupt Preemption
+STATEMENT: >>>
+Where Meta-IRQ scheduling is enabled, the Zephyr RTOS shall allow hardware interrupts to preempt a Meta-IRQ thread.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-7
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-013
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Voluntary Yielding
+STATEMENT: >>>
+The Zephyr RTOS shall provide a mechanism for a thread to voluntarily let a ready thread of equal or higher priority run. If no such thread exists, the calling thread shall continue executing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-014
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Preemptive Time Quantum
+STATEMENT: >>>
+Where time slicing is enabled, the Zephyr RTOS shall ensure preemptive threads relinquish the CPU after not more than a configurable number of system ticks if there is another ready thread of equal priority.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-015
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Time Slice Priority Exemption
+STATEMENT: >>>
+Where time slicing is enabled, the Zephyr RTOS shall exempt threads with priority higher than a configurable threshold from preemptive time slicing.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+- TYPE: Parent
+  VALUE: ZEP-SYRS-17
+
+[[/SECTION]]
+
+[[SECTION]]
+TITLE: Thread Management
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-016
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Non-Preemptible Critical Sections
+STATEMENT: >>>
+The Zephyr RTOS shall provide a mechanism for a preemptive thread to temporarily disable preemption by behaving as a cooperative thread until the mechanism is explicitly released.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-017
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Non-Preemptible Status Persistence
+STATEMENT: >>>
+If a preemptive thread becomes unready while preemption is prevented, then the Zephyr RTOS shall maintain the non-preemptible status when the thread resumes.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-018
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Preemption Disable Nesting
+STATEMENT: >>>
+The Zephyr RTOS shall maintain preemption disabled until it has been re-enabled as many times as it was disabled.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SRS-2-016
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-019
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Rescheduling on Preemption Re-enable
+STATEMENT: >>>
+When preemption is re-enabled, the Zephyr RTOS shall immediately trigger rescheduling.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SRS-2-016
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-020
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Thread Sleeping
+STATEMENT: >>>
+The Zephyr RTOS shall provide a mechanism to delay thread execution for a specified time period, relinquishing the CPU to other ready threads.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-021
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Thread Waking
+STATEMENT: >>>
+The Zephyr RTOS shall provide a mechanism for a thread to wake another thread that is sleeping. If the target thread is not sleeping, then the Zephyr RTOS shall have no effect.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
+
+[REQUIREMENT]
+UID: ZEP-SRS-2-022
+STATUS: Draft
+TYPE: Functional
+COMPONENT: Thread Scheduling
+TITLE: Busy Wait Non-Relinquishing
+STATEMENT: >>>
+The Zephyr RTOS shall provide a mechanism to delay thread execution for a specified duration without relinquishing the CPU or triggering rescheduling.
+<<<
+RELATIONS:
+- TYPE: Parent
+  VALUE: ZEP-SYRS-16
 
 [[/SECTION]]
